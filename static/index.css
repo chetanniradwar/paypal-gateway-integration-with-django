@@ -1,0 +1,24 @@
+
+.container
+{
+height: 100vh;
+border: 2px solid red;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+}
+#donate-btn
+{
+background-color: blueviolet;
+border-radius: 0.25em;
+padding: 12px 39px;
+color: white;
+border: 2px solid blueviolet;
+cursor: pointer;
+display: inline-block;
+font-weight: bold;
+font-size: 1.3rem;
+
+
+}
