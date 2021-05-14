@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,19 +9,22 @@
     <link rel="stylesheet" href="{% static 'index.css' %}">
     <title>Donate page</title>
 </head>
+
 <body>
-   
+
     <div class="container">
-        <a id="donate-btn">Donate</a> 
+        <a id="donate-btn">Donate</a>
 
 
-<div id="paypal-button">{% csrf_token %} </div>
+        <div id="paypal-button">{% csrf_token %} </div>
 
 
-    
-   
-   
+    </div>
+
+
 </body>
-<script src="https://www.paypalobjects.com/api/checkout.js"></script>
+<script
+    src="https://www.paypal.com/sdk/js?client-id=AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7"></script>
 <script src="{% static 'paypal.js' %}"></script>
+
 </html>
