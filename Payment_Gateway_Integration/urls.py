@@ -21,5 +21,6 @@ urlpatterns = [
     path('PaymentGatewayIntegration/', include('PaymentGatewayIntegration.urls')),
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
-    path('create-paypal-transaction',views.paypal),
+    path('create-paypal-transaction',views.createpaypalorder),
+    path('get-paypal-transaction',views.getpaypaltransactiondetails)
 ]

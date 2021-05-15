@@ -1,20 +1,21 @@
+import os
 from paypalcheckoutsdk.core import PayPalHttpClient, SandboxEnvironment
 
 import sys
 
 class PayPalClient:
     def __init__(self):
-        self.client_id = "AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7"
-        self.client_secret = "EDarMyDvAxfecqAt7ufknBhiIio8nwsIigERY5lFLkGKQfP5aK1K825wpX4i61k8CAka_iUFBjM-a14j"
+        self.client_id =  os.environ["PAYPAL_CLIENT_ID"] if 'PAYPAL_CLIENT_ID' in os.environ else "AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7"
+        self.client_secret = os.environ["PAYPAL_CLIENT_SECRET"] if 'PAYPAL_CLIENT_SECRET' in os.environ else "EDarMyDvAxfecqAt7ufknBhiIio8nwsIigERY5lFLkGKQfP5aK1K825wpX4i61k8CAka_iUFBjM-a14j"
 
-        """Set up and return PayPal Python SDK environment with PayPal access credentials.
-           This sample uses SandboxEnvironment. In production, use LiveEnvironment."""
-
+        """Setting up and Returns PayPal SDK environment with PayPal Access credentials.
+           For demo purpose, we are using SandboxEnvironment. In production this will be
+           LiveEnvironment."""
         self.environment = SandboxEnvironment(client_id=self.client_id, client_secret=self.client_secret)
 
-        """ Returns PayPal HTTP client instance with environment that has access
-            credentials context. Use this instance to invoke PayPal APIs, provided the
-            credentials have access. """
+        """ Returns PayPal HTTP client instance with environment which has access
+            credentials context. This can be used invoke PayPal API's provided the
+            credentials have the access to do so. """
         self.client = PayPalHttpClient(self.environment)
 
     def object_to_json(self, json_data):
@@ -28,7 +29,7 @@ class PayPalClient:
             itr = json_data.__dict__.items()
         for key,value in itr:
             # Skip internal attributes.
-            if key.startswith("__"):
+            if key.startswith("__") or key.startswith("_"):
                 continue
             result[key] = self.array_to_json_array(value) if isinstance(value, list) else\
                         self.object_to_json(value) if not self.is_primittive(value) else\
@@ -43,4 +44,4 @@ class PayPalClient:
         return result;
 
     def is_primittive(self, data):
-        return isinstance(data, str) or isinstance(data, unicode) or isinstance(data, int)
+        return isinstance(data, str) or isinstance(data, str) or isinstance(data, int)
