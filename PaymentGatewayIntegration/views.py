@@ -3,6 +3,7 @@ import requests
 from PaymentGatewayIntegration.paypalFile import PayPalClient
 from paypalhttp.serializers.json_serializer import Json
 from paypalcheckoutsdk.orders import OrdersCreateRequest
+from paypalcheckoutsdk.orders import OrdersCaptureRequest
 from paypalcheckoutsdk.orders import OrdersGetRequest
 
 from requests.auth import HTTPBasicAuth
@@ -13,88 +14,48 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 import json
 
+from .models import donor
+from .models import transaction
+
 orderid=""
+def onformsubmit(request):
+  first_name=request.GET['firstName']
+  last_name=request.GET['lastName']
+  email_id=request.GET['emailAdd']
+  mobile_no=request.GET['mobile']
+  amount=request.GET['amount']
+  request.session.get('amount',0)
+  request.session['amount']=amount
+  current_donor=donor.objects.create(email_id=email_id, first_name=first_name,last_name=last_name,mobile_no=mobile_no)
+  request.session.get('current_donor',None)
+  request.session['current_donor']=current_donor.id
+  return render(request,'paymentoption.html',{'firstName':first_name,'lastName':last_name})
+
+
 def index(request):
     return render(request,"index.html",{})
 @csrf_exempt
 def createpaypalorder(request):
     print("i am at cretatepaypalorder")
-    Responsee=CreateOrder().create_order(debug=True)
-    # print(json.dumps(response))
-    print(Responsee)
-    print(type(Responsee))
-    # print(Responsee.result)
-    # print(type(Responsee.result))
-    # Responsee=Responsee.json()
+    amt=request.session.get('amount')
+    curr_donor=request.session.get('current_donor')
+    Responsee=CreateOrder().create_order(debug=True,amt_value=amt,present_donor=curr_donor)
+
     return JsonResponse(Responsee)
 @csrf_exempt
-def getpaypaltransactiondetails():
+def getpaypaltransactiondetails(request):
     print("i am at getpaytpaltransactiondetails")
     order=GetOrder().get_order(orderid)
+    return JsonResponse(order)
 
-    return HttpResponse(order)
-
-    # req1=request.POST[req]
-    # res1=request.POST[res]
-
-    # if request.method == "POST":
-    #      print("inside post")
-    #      auth_url="https://api-m.sandbox.paypal.com/v2/oauth2/token"
-    #      auth_header={'Accept': 'application/json','Accept-Language': 'en_US'}
-    #      auth_response= requests.post(auth_url,headers=auth_header, auth=('AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7','EDarMyDvAxfecqAt7ufknBhiIio8nwsIigERY5lFLkGKQfP5aK1K825wpX4i61k8CAka_iUFBjM-a14j'),data={'grant_type':'client_credentials'})
-    #      print(auth_response.json())
-    #      auth_res=auth_response.json()
-    #      print(type(auth_res))
-    #      access_token=auth_res['access_token']
-    #      appid=auth_res['app_id']
-    #      print( access_token)
-    #      print(appid)
-    #      url = "https://api-m.sandbox.paypal.com/v1/payments/payment"
-    #      header={
-    #          'Content-Type': 'application/json',
-    #          'Authorization':'Bearer ' + access_token
-    #      }
-    #      data={ 
-    #         'auth':
-    #         {
-    #             'user': 'AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7',
-    #             'pass': 'EDarMyDvAxfecqAt7ufknBhiIio8nwsIigERY5lFLkGKQfP5aK1K825wpX4i61k8CAka_iUFBjM-a14j'
-    #         },
-    #         'body':
-    #         {
-    #             'intent': 'sale',
-    #             'payer':
-    #             {
-    #                 'payment_method': 'paypal'
-    #             },
-    #             'transactions': [
-    #                 {
-    #                     'amount':
-    #                     { 
-    #                         'total': '5.99',
-    #                         'currency': 'USD'
-    #                     }
-    #                 }],
-    #             'redirect_urls':
-    #             { 
-    #                 'return_url': 'http:http://127.0.0.1:8000/',
-    #                 'cancel_url': 'http:http://127.0.0.1:8000/'
-    #             }
-           
-    #         },
-    #         'json':'True'
-    #     }
-    #      response =requests.post(url,headers=header,json=data)
-    #      print("hi")
-        
-    #      print("hello")
-    #      info = response.json()
-    #      print(info)
-    #      return HttpResponse(info)
-
-
-
-
+@csrf_exempt 
+def capturepaypalorder(request):
+    data=json.loads(request.body.decode("utf-8"))
+    
+    print(data)
+    ordrid=data['orderID']
+    capture=CaptureOrder().capture_order(ordrid,debug=True)
+    return JsonResponse(capture)
 # 1. Import the PayPal SDK client that was created in `Set up Server-Side SDK`.
 
 class CreateOrder(PayPalClient):
@@ -103,11 +64,11 @@ class CreateOrder(PayPalClient):
   """ This is the sample function to create an order. It uses the
     JSON body returned by buildRequestBody() to create an order."""
 
-  def create_order(self,debug=True):
+  def create_order(self,debug=True,amt_value=0,present_donor=None):
       
     request = OrdersCreateRequest()
     request.headers['prefer'] = 'return=representation'
-   
+    
     #3. Call PayPal to set up a transaction
     request.request_body(
       {
@@ -115,25 +76,28 @@ class CreateOrder(PayPalClient):
         "purchase_units": [
             {
                 "amount": {
-                    "currency_code": "USD",
-                    "value": "100.00"
+                    "currency_code": "INR",
+                    "value": amt_value
                 }
             }
         ]
     }
     )
     response = self.client.execute(request)
+    orderid=response.result.id
+    print('first=='+orderid)
     if debug:
       print ('Status Code: ', response.status_code)
       print ('Status: ', response.result.status)
-      orderid=response.result.id
-      print(type(orderid))
+      
       print ('Order ID: ', response.result.id)
       print ('Intent: ', response.result.intent)
       for link in response.result.links:
         print('\t{}: {}\tCall Type: {}'.format(link.rel, link.href, link.method))
         print('Total Amount: {} {}'.format(response.result.purchase_units[0].amount.currency_code,
                          response.result.purchase_units[0].amount.value))
+    foreign_key=donor.objects.get(id=present_donor)
+    transaction.objects.create(donor=foreign_key,order_id=response.result.id,amount_val=amt_value,status=response.result.status)
     print(response)
     print(type(response))
     print(response.result)
@@ -141,7 +105,7 @@ class CreateOrder(PayPalClient):
     # print(json.dumps(response))
     # hi=json.dumps(response)
     json_data = self.object_to_json(response.result)
-    print("json_data: ", json.dumps(json_data,indent=4))
+    print("create_order_json_data: ", json.dumps(json_data,indent=4))
     return json_data
     # return response.result
 
@@ -166,13 +130,59 @@ class GetOrder(PayPalClient):
     print ('Status: ', response.result.status)
     print ('Order ID: ', response.result.id)
     print ('Intent: ', response.result.intent)
-    # print ('Links:'
-    # for link in response.result.links:
-    #   print('\t{}: {}\tCall Type: {}'.format(link.rel, link.href, link.method))
-    # print 'Gross Amount: {} {}'.format(response.result.purchase_units[0].amount.currency_code,
-    #                    response.result.purchase_units[0].amount.value)
-
+    print('Links :')
+    for link in response.result.links:
+      print('\t{}: {}\tCall Type: {}'.format(link.rel, link.href, link.method))
+    print('Gross Amount: {} {}'.format(response.result.purchase_units[0].amount.currency_code,
+                       response.result.purchase_units[0].amount.value))
+ 
+    json_data = self.object_to_json(response.result)
+    print("get_order_json_data: ", json.dumps(json_data,indent=4))
+    return json_data
 """This driver function invokes the get_order function with
    order ID to retrieve sample order details. """
 # if __name__ == '__main__':
   # GetOrder().get_order('REPLACE-WITH-VALID-ORDER-ID')
+
+
+
+
+  
+class CaptureOrder(PayPalClient):
+        
+    """this is the sample function performing payment capture on the order. Approved Order id should be passed as an argument to this function"""
+
+    def capture_order(self, order_id, debug=True):
+        """Method to capture order using order_id"""
+        print('order_id==='+order_id)
+        request = OrdersCaptureRequest(order_id)
+        response = self.client.execute(request)
+        if debug:
+            print ('Status Code: ', response.status_code)
+            print ('Status: ', response.result.status)
+            print ('Order ID: ', response.result.id)
+            print ('Links: ')
+            for link in response.result.links:
+                print('\t{}: {}\tCall Type: {}'.format(link.rel, link.href, link.method))
+            print ('Capture Ids: ')
+            for purchase_unit in response.result.purchase_units:
+                for capture in purchase_unit.payments.captures:
+                    print('\t', capture.id)
+            try:
+
+              print ("Buyer:")
+              print ("\tEmail Address: {}\n\tName: {}\n\tPhone Number: {}".format(response.result.payer.email_address,
+                                                                            response.result.payer.name.given_name + " " + response.result.payer.name.surname,
+                                                                           response.result.payer.phone.phone_number.national_number))
+            except:
+              print("error")
+              
+            json_data = self.object_to_json(response.result)
+            print ("capture_json_data: ", json.dumps(json_data,indent=4))
+        return json_data
+
+
+"""This is the driver function which invokes the capture order function. Order Id value should be replaced with the approved order id. """
+# if __name__ == "__main__":
+    # order_id = '8G344453R30787301'
+    # CaptureOrder().capture_order(order_id, debug=True)

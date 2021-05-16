@@ -20,7 +20,9 @@ from PaymentGatewayIntegration import views
 urlpatterns = [
     path('PaymentGatewayIntegration/', include('PaymentGatewayIntegration.urls')),
     path('admin/', admin.site.urls),
+    path('on_form_submit',views.onformsubmit),
     path('', views.index, name='index'),
     path('create-paypal-transaction',views.createpaypalorder),
+    path('capture-paypal-transaction',views.capturepaypalorder),
     path('get-paypal-transaction',views.getpaypaltransactiondetails)
 ]

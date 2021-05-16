@@ -13,18 +13,20 @@
 <body>
 
     <div class="container">
-        <a id="donate-btn">Donate</a>
+        <form action="on_form_submit" method="GET">
+        <input type="text" id="firstName" name="firstName" placeholder="Enter Your First Name">
+        <input type="text" id="lastName" name="lastName" placeholder="Enter Your Last Name">
+        <input type="phone" id="mobile"  name="mobile" placeholder="Enter mobile number">
+        <input type="email" id="emailAdd" name="emailAdd" placeholder="Enter Email address">
+        <input type="number" id="amount" name="amount" placeholder ="Enter amount in INR">
+      <input type="submit" id="donate-btn" value="Donate">
 
 
-        <div id="paypal-button">{% csrf_token %} </div>
 
-
+    </form>
     </div>
 
 
 </body>
-<script
-    src="https://www.paypal.com/sdk/js?client-id=AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7"></script>
-<script src="{% static 'paypal.js' %}"></script>
-
+<script src="{% static 'index.js' %}"></script>
 </html>

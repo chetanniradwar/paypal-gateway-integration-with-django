@@ -22,18 +22,22 @@ paypal.Buttons({
     },
     onApprove: function (data) {
         alert('in onaprove')
-        return fetch('get-paypal-transaction', {
+        return fetch('capture-paypal-transaction', {
+            method: 'post',
             headers: {
                 'content-type': 'application/json'
             },
             body: JSON.stringify({
                 orderID: data.orderID
             })
-        }).then(function (res) {
+        }).then( res=> {
             return res.json();
         }).then(function (details) {
-            alert('Transaction approved by ' + details.payer_given_name);
+            alert('Transaction funds captured from' + details.payer_given_name);
 
-        })
+        }).catch(error =>{
+            console.log('error:')
+            console.error(error);
+            });
         }
 }).render('#paypal-button');

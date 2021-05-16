@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=\, initial-scale=1.0">
+    <link rel="stylesheet" href="{%static 'paymentOptions.css' %}">
+    <title>Select payment Method</title>
+</head>
+<body>
+    <!-- <h2>Hello, {{firstName}} {{lastName}}</h2> -->
+    <div class="container">
+        <h2>Hello, {{firstName}} {{lastName}}</h2>
+        <h3>Please Select the Payment Method</h3>
+        <div id="paypal-button">{% csrf_token %} </div>
+    </div>
+</body>
+<script src="https://www.paypal.com/sdk/js?client-id=AZS0RdSzskmPsFObSmq1c_C7pLKTuDVZ8jvpczyudM-v57oiDvfcQ3RIfRcsoPpCNLkYW7Ok35cMqgM7"></script>
+<script src="{% static 'paypal.js' %}"></script>
+</html>

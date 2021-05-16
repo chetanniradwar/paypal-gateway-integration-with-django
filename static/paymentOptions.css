@@ -1,0 +1,13 @@
+.container
+{
+height: 100vh;
+border: 2px solid red;
+display: flex;
+flex-direction: column; 
+justify-content: center;
+align-items: center;
+}
+.container h2{
+   margin: 1.5em 0em;
+  
+}
