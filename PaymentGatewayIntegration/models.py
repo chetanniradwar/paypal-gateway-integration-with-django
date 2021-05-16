@@ -12,6 +12,7 @@ class donor(models.Model):
 class transaction(models.Model):
     donor = models.ForeignKey(donor, on_delete=models.CASCADE)
     order_id=models.CharField(max_length=50)
+    capture_id=models.CharField(max_length=50,default=None,null=True)
     amount_val=models.IntegerField()
     trans_time=models.DateTimeField(auto_now=True)
     status=models.CharField(max_length=50)

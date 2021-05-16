@@ -54,7 +54,8 @@ def capturepaypalorder(request):
     
     print(data)
     ordrid=data['orderID']
-    capture=CaptureOrder().capture_order(ordrid,debug=True)
+    curr_donor=request.session.get('current_donor')
+    capture=CaptureOrder().capture_order(ordrid,debug=True,present_donor=curr_donor)
     return JsonResponse(capture)
 # 1. Import the PayPal SDK client that was created in `Set up Server-Side SDK`.
 
@@ -76,7 +77,7 @@ class CreateOrder(PayPalClient):
         "purchase_units": [
             {
                 "amount": {
-                    "currency_code": "INR",
+                    "currency_code": "USD",
                     "value": amt_value
                 }
             }
@@ -152,7 +153,7 @@ class CaptureOrder(PayPalClient):
         
     """this is the sample function performing payment capture on the order. Approved Order id should be passed as an argument to this function"""
 
-    def capture_order(self, order_id, debug=True):
+    def capture_order(self, order_id, debug=True,present_donor=None):
         """Method to capture order using order_id"""
         print('order_id==='+order_id)
         request = OrdersCaptureRequest(order_id)
@@ -168,17 +169,22 @@ class CaptureOrder(PayPalClient):
             for purchase_unit in response.result.purchase_units:
                 for capture in purchase_unit.payments.captures:
                     print('\t', capture.id)
+                    captureId=capture.id
             try:
 
               print ("Buyer:")
-              print ("\tEmail Address: {}\n\tName: {}\n\tPhone Number: {}".format(response.result.payer.email_address,
-                                                                            response.result.payer.name.given_name + " " + response.result.payer.name.surname,
-                                                                           response.result.payer.phone.phone_number.national_number))
+              print ("\tEmail Address: {}\n\tName: {}\n\tPhone Number:".format(response.result.payer.email_address,
+                                                                            response.result.payer.name.given_name + " " + response.result.payer.name.surname))
+                                                                          #  response.result.payer.phone.phone_number.national_number))
             except:
               print("error")
-              
             json_data = self.object_to_json(response.result)
             print ("capture_json_data: ", json.dumps(json_data,indent=4))
+            curr_tran=transaction.objects.get(id=present_donor)
+            curr_tran.capture_id=captureId
+            curr_tran.status=response.result.status
+            curr_tran.save()
+            
         return json_data
 
 
