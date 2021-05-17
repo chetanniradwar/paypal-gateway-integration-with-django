@@ -1,5 +1,6 @@
 paypal.Buttons({
     createOrder: function () {
+        
         alert('in create order')
         return fetch('create-paypal-transaction', {
             method: 'post',
@@ -11,14 +12,21 @@ paypal.Buttons({
             
             return res.json()
     
-            
         }).then( data=> {
             // console.log("id here"+data.clone.id)
             return data.id; // Use the key sent by your server's response, ex. 'id' or 'token'
         }).catch(error =>{
-        console.log('error:')
-        console.error(error);
+        window.open('failure-page')
+        // console.log('error:')
+        // console.error(error);
+        // fetch('failure-page',{
+        //     method:'get',
+
+        // }).catch(error=>{
+        //     console.error(error)
+        // })
         });
+
     },
     onApprove: function (data) {
         alert('in onaprove')
@@ -32,12 +40,28 @@ paypal.Buttons({
             })
         }).then( res=> {
             return res.json();
-        }).then(function (details) {
-            alert('Transaction funds captured from' + details.payer_given_name);
+        }).then(function (details) { 
+            // fetch('success-page',{
+            //     method:'get',
+
+            // }).catch(error=>{
+            //     console.error(error)
+            // })
+            
+            window.open('success-page');
+            
+//   alert('Transaction funds captured from' + details.payer_given_name);
 
         }).catch(error =>{
-            console.log('error:')
-            console.error(error);
+            // fetch('failure-page',{
+            //     method:'get',
+
+            // }).catch(error=>{
+            //     console.error(error)
+            // })
+            window.open('failure-page')
+            // console.log('error:')
+            // console.error(error);
             });
         }
 }).render('#paypal-button');

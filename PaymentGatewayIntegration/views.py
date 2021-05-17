@@ -57,7 +57,16 @@ def capturepaypalorder(request):
     curr_donor=request.session.get('current_donor')
     capture=CaptureOrder().capture_order(ordrid,debug=True,present_donor=curr_donor)
     return JsonResponse(capture)
+
+
+def getsuccesspage(request):
+    return render(request,'success.html') 
+
+def getfailurepage(request):
+    return render(request,'failure.html')   
 # 1. Import the PayPal SDK client that was created in `Set up Server-Side SDK`.
+
+
 
 class CreateOrder(PayPalClient):
 
